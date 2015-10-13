@@ -68,7 +68,7 @@
                             var valor = (valores.length == 1) ? '' + valores[0] : '' + valores[x];
                             if (
                                 ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
-                                (!exact_match && base.indexOf(valor) > -1)
+                                (!exact_match && base.toUpperCase().indexOf(valor.toUpperCase()) > -1)
                             ) {
                                 respuesta.push(data[y]);
                                 x = parametros.length;
