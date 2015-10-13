@@ -39,8 +39,45 @@
         service.validateEmail = validateEmail;
         service.validations = validations;
         service.verifyBrowser = verifyBrowser;
+        service.getByParams = getByParams;
 
         return service;
+
+
+        /**
+         * @description Retorna la lista filtrada de Carritos
+         * @param params -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
+         * @param values
+         * @param callback
+         */
+        function getByParams(params, values, exact_match, data, callback) {
+            var parametros = params.split(',');
+            var valores = values.split(',');
+
+            var respuesta = [];
+            for (var y = 0; y < data.length; y++) {
+                var columns = Object.keys(data[y]);
+
+                for (var i = 0; i < columns.length; i++) {
+                    for (var x = 0; x < parametros.length; x++) {
+                        if (columns[i] == parametros[x]) {
+
+                            var base = '' + data[y][Object.keys(data[y])[i]];
+                            var valor = (valores.length == 1) ? '' + valores[0] : '' + valores[x];
+                            if (
+                                ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
+                                (!exact_match && base.indexOf(valor) > -1)
+                            ) {
+                                respuesta.push(data[y]);
+                                x = parametros.length;
+                                i = columns.length;
+                            }
+                        }
+                    }
+                }
+            }
+            callback(respuesta);
+        };
 
 
         function verifyBrowser() {
