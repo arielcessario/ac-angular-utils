@@ -10,7 +10,7 @@
             });
         }])
         .controller('AcUtilsController', AcUtilsController)
-        .factory('AcUtilsService', AcUtilsService)
+        .factory('AcUtils', AcUtils)
         .service('AcUtilsGlobals', AcUtilsGlobals)
     ;
 
@@ -32,8 +32,8 @@
     }
 
 
-    AcUtilsService.$inject = ['AcUtilsGlobals'];
-    function AcUtilsService(AcUtilsGlobals) {
+    AcUtils.$inject = ['AcUtilsGlobals'];
+    function AcUtils(AcUtilsGlobals) {
         var service = {};
 
         service.validateEmail = validateEmail;
