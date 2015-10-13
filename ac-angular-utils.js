@@ -48,6 +48,8 @@
          * @description Retorna la lista filtrada de Carritos
          * @param params -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
          * @param values
+         * @param exact_match
+         * @param data
          * @param callback
          */
         function getByParams(params, values, exact_match, data, callback) {
