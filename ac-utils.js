@@ -53,6 +53,10 @@
          * @param callback
          */
         function getByParams(params, values, exact_match, data, callback) {
+            if(data.length == 0){
+                return;
+            }
+
             var parametros = params.split(',');
             var valores = values.split(',');
 
