@@ -41,7 +41,7 @@
                 vm.over = false;
                 $element.bind('mouseleave', function () {
                     vm.over = false;
-                    $timeout(AcUtilsGlobals.broadcastPanel, 100000);
+                    $timeout(AcUtilsGlobals.broadcastPanel, 1000);
                 });
 
                 $element.bind('mouseover', function () {
@@ -83,7 +83,7 @@
                             // Agrego un evento que cuando me voy de la lista espero un segundo y la remuevo
                             lista.bind('mouseleave', function () {
                                 vm.over = false;
-                                $timeout(AcUtilsGlobals.broadcastPanel, 100000);
+                                $timeout(AcUtilsGlobals.broadcastPanel, 1000);
                             });
 
                             // Agrego un evento que cuando estoy sobre la lista, no se oculte
