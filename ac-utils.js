@@ -12,8 +12,37 @@
         .controller('AcUtilsController', AcUtilsController)
         .factory('AcUtils', AcUtils)
         .service('AcUtilsGlobals', AcUtilsGlobals)
+        .directive('acSearchPanel', AcSearchPanel)
     ;
 
+
+
+
+
+    AcSearchPanel.$inject = [];
+    function AcSearchPanel() {
+        return {
+            restrict: 'AE',
+            scope: {
+                service: '=',
+                params: '=',
+                values: '=',
+                selected: '='
+            },
+            controller: function ($scope, $compile, $http) {
+                var vm = this;
+
+
+            },
+            link: function (scope, element, attr) {
+                element.bind('keyup', function(data){
+
+                });
+
+            },
+            controllerAs: 'acSearchCtrl'
+        };
+    }
 
     AcUtilsController.$inject = [];
     function AcUtilsController() {
@@ -83,7 +112,7 @@
                 }
             }
             callback(respuesta);
-        };
+        }
 
 
         function verifyBrowser() {
