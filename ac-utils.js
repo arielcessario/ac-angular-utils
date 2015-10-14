@@ -16,28 +16,149 @@
     ;
 
 
-
-
-
-    AcSearchPanel.$inject = [];
-    function AcSearchPanel() {
+    /**
+     * Directiva que muestra un panel de resultados de las búsquedas. Para darle aspecto, utilizar .ac-result-panel
+     * @type {string[]}
+     */
+    AcSearchPanel.$inject = ['$injector', 'AcUtilsGlobals', '$timeout', '$compile'];
+    function AcSearchPanel($injector, AcUtilsGlobals, $timeout, $compile) {
         return {
             restrict: 'AE',
             scope: {
-                service: '=',
-                params: '=',
-                values: '=',
-                selected: '='
+                service: '=', // El servicio que va a devolver los valores
+                params: '=', // Campos en donde buscar, string separado por comas, sin espacios, y el nombre del campo de la tabla
+                exactMatch: '=', // True busca la palabra completa, False solo un parcial -> recomendado
+                visible: '=', // lo que se va a mostrar en el listado, string separado por comas, sin espacios, y el nombre del campo de la tabla
+                selected: '=', // El objeto en donde queremos volcar la selección
+                objeto: '=' // El objeto en donde queremos volcar la selección
             },
-            controller: function ($scope, $compile, $http) {
+            controller: function ($scope, $element, $attrs) {
                 var vm = this;
 
+                vm.resultados = [];
+                vm.acItemListPanelSelected = 0;
+
+                vm.over = false;
+                $element.bind('mouseleave', function () {
+                    vm.over = false;
+                    $timeout(AcUtilsGlobals.broadcastPanel, 100000);
+                });
+
+                $element.bind('mouseover', function () {
+                    vm.over = true;
+                });
+
+                vm.selectItem = function (i) {
+                    $scope.objeto = angular.copy(vm.resultados[i]);
+                    vm.over = false;
+                    AcUtilsGlobals.broadcastPanel();
+                };
+
+
+                $element.bind('keyup focus', function (event) {
+
+                    if ($element.val().length > 0) {
+
+                        // Avisa a todos los paneles para que se oculten
+                        vm.over = false;
+                        AcUtilsGlobals.broadcastPanel();
+
+                        // Consigo el servicio a partir del parámetro pasado en la directiva
+                        var myService = $injector.get($attrs.service);
+                        // Invoco al evento genérico
+                        myService.getByParams($attrs.params, $element.val(), ($attrs.exactMatch == 'true') ? true : false, function (data) {
+
+                            vm.resultados = data;
+                            vm.acItemListPanelSelected = 0;
+                            // Creo un random id para darle a la lista y que no tenga error con otros div de la aplicación
+                            var id = Math.floor((Math.random() * 100000) + 1);
+
+                            // Creo el contenedor de los items que devuelvo de la búsqueda.
+                            $element.after('<div class="ac-result-panel" id="panel-' + id + '"></div>');
+
+                            // Obtengo a la lista y la guardo en una variable
+                            var lista = angular.element(document.querySelector('#panel-' + id));
+
+
+                            // Agrego un evento que cuando me voy de la lista espero un segundo y la remuevo
+                            lista.bind('mouseleave', function () {
+                                vm.over = false;
+                                $timeout(AcUtilsGlobals.broadcastPanel, 100000);
+                            });
+
+                            // Agrego un evento que cuando estoy sobre la lista, no se oculte
+                            lista.bind('mouseover focus', function () {
+                                vm.over = true;
+                            });
+
+                            // Parseo la lista de columnas a mostrar en la lista
+                            var a_mostrar_columnas = $attrs.visible.split(',');
+
+                            // Reviso la lista completa para saber que mostrar
+                            for (var i = 0; i < data.length; i++) {
+                                var columns = Object.keys(data[i]);
+                                var a_mostrar_text = '';
+
+                                for (var x = 0; x < columns.length; x++) {
+                                    for (var y = 0; y < a_mostrar_columnas.length; y++) {
+                                        if (a_mostrar_columnas[y] == columns[x]) {
+                                            var base = ' ' + data[i][Object.keys(data[i])[x]];
+                                            a_mostrar_text = a_mostrar_text + base;
+                                        }
+                                    }
+                                }
+                                lista.append($compile('<div class="ac-item-list" ng-click="acSearchCtrl.selectItem(' + i + ')" ng-class="{\'ac-item-selected-list\': acSearchCtrl.acItemListPanelSelected == ' + i + '}">' + a_mostrar_text + '</div>')($scope));
+                            }
+
+
+                            // Selecciono Item de la lista
+                            // Me muevo para abajo en la lista
+                            if (event.keyCode == 40) {
+                                vm.acItemListPanelSelected = (vm.acItemListPanelSelected > data.length - 1) ? vm.acItemListPanelSelected : vm.acItemListPanelSelected + 1;
+                            }
+
+                            // Me muevo para arriba en la lista
+                            if (event.keyCode == 38) {
+                                vm.acItemListPanelSelected = (vm.acItemListPanelSelected - 1 < 0) ? vm.acItemListPanelSelected : vm.acItemListPanelSelected - 1;
+                            }
+
+                            // selecciono
+                            if (event.keyCode == 13) {
+                                vm.selectItem(vm.acItemListPanelSelected);
+                            }
+
+                            // Agrego formatos básicos para la lista
+                            lista.css('position', 'absolute');
+                            lista.css('top', ($element[0].offsetTop + $element[0].offsetHeight) + 'px');
+                            lista.css('left', $element[0].offsetLeft + 'px');
+                            lista.css('width', $element[0].offsetWidth + 'px');
+                            lista.css('max-width', $element[0].offsetWidth + 'px');
+
+
+                            // Me aseguro que no se oculte la lista
+                            vm.over = true;
+                        });
+                    } else {
+                        vm.over = false;
+                        AcUtilsGlobals.broadcastPanel();
+                    }
+                });
+
+
+                // Oculto la lista si no está el mouse arriba y no tiene foco
+                AcUtilsGlobals.listenPanel(function () {
+                    if (vm.over) {
+                        return;
+                    }
+                    var control = angular.element(document.querySelectorAll('.ac-result-panel'));
+                    for (var i = 0; i < control.length; i++) {
+                        control[i].remove();
+                    }
+                });
 
             },
             link: function (scope, element, attr) {
-                element.bind('keyup', function(data){
 
-                });
 
             },
             controllerAs: 'acSearchCtrl'
@@ -58,6 +179,14 @@
         this.listen = function (callback) {
             $rootScope.$on("AcUtilsGlobalsValidations", callback)
         };
+
+        this.broadcastPanel = function () {
+            $rootScope.$broadcast('acSearchPanels');
+        };
+
+        this.listenPanel = function (callback) {
+            $rootScope.$on('acSearchPanels', callback);
+        };
     }
 
 
@@ -75,14 +204,14 @@
 
         /**
          * @description Retorna la lista filtrada de Carritos
-         * @param params -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
+         * @param params -> String, separado por comas (,) que contiene la lista de par?metros de b?squeda, por ej: nombre, sku
          * @param values
          * @param exact_match
          * @param data
          * @param callback
          */
         function getByParams(params, values, exact_match, data, callback) {
-            if(data.length == 0){
+            if (data.length == 0) {
                 return;
             }
 
