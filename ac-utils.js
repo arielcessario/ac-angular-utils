@@ -39,15 +39,19 @@
                 vm.acItemListPanelSelected = 0;
 
                 vm.over = false;
+
+                // Cuando saco el mouse de la ventana, se tiene que ocultar la ventana
                 $element.bind('mouseleave', function () {
                     vm.over = false;
                     $timeout(AcUtilsGlobals.broadcastPanel, 1000);
                 });
 
+                // El mouse arriba tiene que evitar que oculte la ventana
                 $element.bind('mouseover', function () {
                     vm.over = true;
                 });
 
+                // Copio el objeto, si no lo copio y lo envio directo se borra del array original
                 vm.selectItem = function (i) {
                     $scope.objeto = angular.copy(vm.resultados[i]);
                     vm.over = false;
@@ -55,6 +59,7 @@
                 };
 
 
+                // Método principal cuando tiene el foco o cuando presiona la tecla
                 $element.bind('keyup focus', function (event) {
 
                     if ($element.val().length > 0) {
@@ -65,7 +70,7 @@
 
                         // Consigo el servicio a partir del par?metro pasado en la directiva
                         var myService = $injector.get($attrs.service);
-                        // Invoco al evento gen?rico
+                        // Invoco al evento genérico
                         myService.getByParams($attrs.params, $element.val(), ($attrs.exactMatch == 'true') ? true : false, function (data) {
 
                             vm.resultados = data;
