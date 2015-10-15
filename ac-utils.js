@@ -72,16 +72,17 @@
 
                         // Consigo el servicio a partir del par?metro pasado en la directiva
                         var myService = $injector.get($attrs.service);
-                        var fn = ($scope.function != undefined)?window[$scope.function]:window['getByParams'];
+                        var fn = ($scope.function != undefined) ? window[$scope.function] : window['getByParams'];
 
 
-                        if($scope.function != undefined){
+                        if ($scope.function != undefined) {
                             myService.fn.apply(this, $scope.params.split(','))
-                        }else{
+                        } else {
                             // Invoco al evento genérico
-                            myService.getByParams($attrs.params, $element.val(), ($attrs.exactMatch == 'true') ? true : false, procesarRespuesta(data) );
+                            myService.getByParams($attrs.params, $element.val(), ($attrs.exactMatch == 'true') ? true : false, function (data) {
+                                procesarRespuesta(data);
+                            });
                         }
-
 
 
                     } else {
@@ -90,7 +91,7 @@
                     }
 
 
-                    function procesarRespuesta(data){
+                    function procesarRespuesta(data) {
 
                         vm.resultados = data;
                         // Creo un random id para darle a la lista y que no tenga error con otros div de la aplicaci?n
