@@ -67,7 +67,7 @@
                 $element.bind('keyup focus', function (event) {
                     $timeout.cancel(timeout);
 
-                    if ($element.val().length > 0) {
+                    if ($element.val().length > 2) {
 
                         // Avisa a todos los paneles para que se oculten
                         vm.over = false;
