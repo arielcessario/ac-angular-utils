@@ -32,7 +32,8 @@
                 visible: '@', // lo que se va a mostrar en el listado, string separado por comas, sin espacios, y el nombre del campo de la tabla
                 selected: '=', // El objeto en donde queremos volcar la selecci?n
                 objeto: '=', // El objeto en donde queremos volcar la selecci?n,
-                function: '=' // Si se desea se pude pasar otra función
+                function: '=', // Si se desea se pude pasar otra función
+                minInput: '=' // Si se desea se pude pasar otra función
             },
             controller: function ($scope, $element, $attrs) {
                 var vm = this;
@@ -40,6 +41,7 @@
                 vm.resultados = [];
                 vm.acItemListPanelSelected = 0;
                 var timeout = {};
+                vm.minInput = ($scope.minInput) ? $scope.minInput : 2;
 
                 vm.over = false;
 
@@ -67,7 +69,7 @@
                 $element.bind('keyup focus', function (event) {
                     $timeout.cancel(timeout);
 
-                    if ($element.val().length > 2) {
+                    if ($element.val().length > vm.minInput) {
 
                         // Avisa a todos los paneles para que se oculten
                         vm.over = false;
@@ -88,14 +90,13 @@
                         }
 
 
-
                     } else {
                         vm.over = false;
                         AcUtilsGlobals.broadcastPanel();
                     }
                 });
 
-                function procesarRespuesta(data){
+                function procesarRespuesta(data) {
 
                     vm.resultados = data;
                     // Creo un random id para darle a la lista y que no tenga error con otros div de la aplicaci?n
