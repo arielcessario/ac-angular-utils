@@ -26,9 +26,9 @@
             restrict: 'AE',
             scope: {
                 service: '=', // El servicio que va a devolver los valores
-                params: '=', // Campos en donde buscar, string separado por comas, sin espacios, y el nombre del campo de la tabla
+                params: '@', // Campos en donde buscar, string separado por comas, sin espacios, y el nombre del campo de la tabla
                 exactMatch: '=', // True busca la palabra completa, False solo un parcial -> recomendado
-                visible: '=', // lo que se va a mostrar en el listado, string separado por comas, sin espacios, y el nombre del campo de la tabla
+                visible: '@', // lo que se va a mostrar en el listado, string separado por comas, sin espacios, y el nombre del campo de la tabla
                 selected: '=', // El objeto en donde queremos volcar la selecci?n
                 objeto: '=' // El objeto en donde queremos volcar la selecci?n
             },
@@ -118,7 +118,6 @@
                             // Selecciono Item de la lista
                             // Me muevo para abajo en la lista
                             if (event.keyCode == 40) {
-                                console.log(vm.acItemListPanelSelected);
                                 vm.acItemListPanelSelected = (vm.acItemListPanelSelected + 1 > data.length - 1) ? vm.acItemListPanelSelected : vm.acItemListPanelSelected + 1;
                             }
 
@@ -132,7 +131,7 @@
                                 vm.selectItem(vm.acItemListPanelSelected);
                             }
 
-                            // Agrego formatos b?sicos para la lista
+                            // Agrego formatos básicos para la lista
                             lista.css('position', 'absolute');
                             lista.css('top', ($element[0].offsetTop + $element[0].offsetHeight) + 'px');
                             lista.css('left', $element[0].offsetLeft + 'px');
