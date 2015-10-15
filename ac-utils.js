@@ -1,3 +1,4 @@
+/*TODO: No funciona para carritos*/
 (function () {
     'use strict';
     var scripts = document.getElementsByTagName("script");
