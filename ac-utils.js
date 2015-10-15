@@ -17,7 +17,7 @@
 
 
     /**
-     * Directiva que muestra un panel de resultados de las búsquedas. Para darle aspecto, utilizar .ac-result-panel
+     * Directiva que muestra un panel de resultados de las b?squedas. Para darle aspecto, utilizar .ac-result-panel
      * @type {string[]}
      */
     AcSearchPanel.$inject = ['$injector', 'AcUtilsGlobals', '$timeout', '$compile'];
@@ -29,8 +29,8 @@
                 params: '=', // Campos en donde buscar, string separado por comas, sin espacios, y el nombre del campo de la tabla
                 exactMatch: '=', // True busca la palabra completa, False solo un parcial -> recomendado
                 visible: '=', // lo que se va a mostrar en el listado, string separado por comas, sin espacios, y el nombre del campo de la tabla
-                selected: '=', // El objeto en donde queremos volcar la selección
-                objeto: '=' // El objeto en donde queremos volcar la selección
+                selected: '=', // El objeto en donde queremos volcar la selecci?n
+                objeto: '=' // El objeto en donde queremos volcar la selecci?n
             },
             controller: function ($scope, $element, $attrs) {
                 var vm = this;
@@ -63,17 +63,16 @@
                         vm.over = false;
                         AcUtilsGlobals.broadcastPanel();
 
-                        // Consigo el servicio a partir del parámetro pasado en la directiva
+                        // Consigo el servicio a partir del par?metro pasado en la directiva
                         var myService = $injector.get($attrs.service);
-                        // Invoco al evento genérico
+                        // Invoco al evento gen?rico
                         myService.getByParams($attrs.params, $element.val(), ($attrs.exactMatch == 'true') ? true : false, function (data) {
 
                             vm.resultados = data;
-                            vm.acItemListPanelSelected = 0;
-                            // Creo un random id para darle a la lista y que no tenga error con otros div de la aplicación
+                            // Creo un random id para darle a la lista y que no tenga error con otros div de la aplicaci?n
                             var id = Math.floor((Math.random() * 100000) + 1);
 
-                            // Creo el contenedor de los items que devuelvo de la búsqueda.
+                            // Creo el contenedor de los items que devuelvo de la b?squeda.
                             $element.after('<div class="ac-result-panel" id="panel-' + id + '"></div>');
 
                             // Obtengo a la lista y la guardo en una variable
@@ -114,7 +113,8 @@
                             // Selecciono Item de la lista
                             // Me muevo para abajo en la lista
                             if (event.keyCode == 40) {
-                                vm.acItemListPanelSelected = (vm.acItemListPanelSelected > data.length - 1) ? vm.acItemListPanelSelected : vm.acItemListPanelSelected + 1;
+                                console.log(vm.acItemListPanelSelected);
+                                vm.acItemListPanelSelected = (vm.acItemListPanelSelected + 1 > data.length - 1) ? vm.acItemListPanelSelected : vm.acItemListPanelSelected + 1;
                             }
 
                             // Me muevo para arriba en la lista
@@ -127,7 +127,7 @@
                                 vm.selectItem(vm.acItemListPanelSelected);
                             }
 
-                            // Agrego formatos básicos para la lista
+                            // Agrego formatos b?sicos para la lista
                             lista.css('position', 'absolute');
                             lista.css('top', ($element[0].offsetTop + $element[0].offsetHeight) + 'px');
                             lista.css('left', $element[0].offsetLeft + 'px');
@@ -145,7 +145,7 @@
                 });
 
 
-                // Oculto la lista si no está el mouse arriba y no tiene foco
+                // Oculto la lista si no est? el mouse arriba y no tiene foco
                 AcUtilsGlobals.listenPanel(function () {
                     if (vm.over) {
                         return;
