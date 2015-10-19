@@ -81,7 +81,12 @@
 
 
                         if ($scope.function != undefined) {
-                            myService.fn.apply(this, $scope.params.split(','))
+                            var valores = $scope.params.split(',');
+                            valores.push(this.val());
+                            valores.push(function (data) {
+                                procesarRespuesta(data);
+                            });
+                            myService.fn.apply(this, valores);
                         } else {
                             // Invoco al evento genérico
                             myService.getByParams($attrs.params, $element.val(), $attrs.exactMatch, function (data) {
@@ -254,7 +259,7 @@
                             var base = '' + data[y][Object.keys(data[y])[i]];
                             var valor = (valores.length == 1) ? '' + valores[0] : '' + valores[x];
                             var exacto = (exactos.length == 1) ? exactos[0] : exactos[x];
-                            exacto = exacto =='true';
+                            exacto = exacto == 'true';
                             if (
                                 ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
                                 (!exact_match && base.toUpperCase().indexOf(valor.toUpperCase()) > -1)
