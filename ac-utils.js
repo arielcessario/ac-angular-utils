@@ -27,7 +27,7 @@
             restrict: 'AE',
             scope: {
                 service: '=', // El servicio que va a devolver los valores
-                params: '@', // Campos en donde buscar, string separado por comas, sin espacios, y el nombre del campo de la tabla
+                params: '@', // Campos en donde buscar, string separado por comas, sin espacios, y el nombre del campo de la tabla, si tiene una función distinta que la default, se manda el valor a buscar.
                 exactMatch: '=', // True busca la palabra completa, False solo un parcial -> recomendado
                 visible: '@', // lo que se va a mostrar en el listado, string separado por comas, sin espacios, y el nombre del campo de la tabla
                 selected: '=', // El objeto en donde queremos volcar la selecci?n
