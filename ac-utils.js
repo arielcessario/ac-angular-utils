@@ -32,8 +32,8 @@
                 visible: '@', // lo que se va a mostrar en el listado, string separado por comas, sin espacios, y el nombre del campo de la tabla
                 selected: '=', // El objeto en donde queremos volcar la selecci?n
                 objeto: '=', // El objeto en donde queremos volcar la selecci?n,
-                function: '=', // Si se desea se pude pasar otra función
-                minInput: '=' // Si se desea se pude pasar otra función
+                function: '=', // Si se desea se pude pasar otra funciï¿½n
+                minInput: '=' // Si se desea se pude pasar otra funciï¿½n
             },
             controller: function ($scope, $element, $attrs) {
                 var vm = this;
@@ -65,7 +65,7 @@
                 };
 
 
-                // Método principal cuando tiene el foco o cuando presiona la tecla
+                // Mï¿½todo principal cuando tiene el foco o cuando presiona la tecla
                 $element.bind('keyup focus', function (event) {
                     $timeout.cancel(timeout);
 
@@ -83,8 +83,8 @@
                         if ($scope.function != undefined) {
                             myService.fn.apply(this, $scope.params.split(','))
                         } else {
-                            // Invoco al evento genérico
-                            myService.getByParams($attrs.params, $element.val(), ($attrs.exactMatch == 'true') ? true : false, function (data) {
+                            // Invoco al evento genÃ©rico
+                            myService.getByParams($attrs.params, $element.val(), $attrs.exactMatch, function (data) {
                                 procesarRespuesta(data);
                             });
                         }
@@ -157,7 +157,7 @@
                         vm.selectItem(vm.acItemListPanelSelected);
                     }
 
-                    // Agrego formatos básicos para la lista
+                    // Agrego formatos bï¿½sicos para la lista
                     lista.css('position', 'absolute');
                     lista.css('top', ($element[0].offsetTop + $element[0].offsetHeight) + 'px');
                     lista.css('left', $element[0].offsetLeft + 'px');
@@ -241,6 +241,7 @@
 
             var parametros = params.split(',');
             var valores = values.split(',');
+            var exactos = exact_match.split(',');
 
             var respuesta = [];
             for (var y = 0; y < data.length; y++) {
@@ -252,6 +253,8 @@
 
                             var base = '' + data[y][Object.keys(data[y])[i]];
                             var valor = (valores.length == 1) ? '' + valores[0] : '' + valores[x];
+                            var exacto = (exactos.length == 1) ? exactos[0] : exactos[x];
+                            exacto = exacto =='true';
                             if (
                                 ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
                                 (!exact_match && base.toUpperCase().indexOf(valor.toUpperCase()) > -1)
