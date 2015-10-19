@@ -89,7 +89,9 @@
                         } else {
                             // Invoco al evento genÃ©rico
                             myService.getByParams($attrs.params, $element.val(), $attrs.exactMatch, function (data) {
-                                procesarRespuesta(data);
+                                if (data.length > 0) {
+                                    procesarRespuesta(data);
+                                }
                             });
                         }
 
