@@ -27,13 +27,13 @@
             restrict: 'AE',
             scope: {
                 service: '=', // El servicio que va a devolver los valores
-                params: '@', // Campos en donde buscar, string separado por comas, sin espacios, y el nombre del campo de la tabla, si tiene una función distinta que la default, se manda el valor a buscar.
+                params: '@', // Campos en donde buscar, string separado por comas, sin espacios, y el nombre del campo de la tabla
                 exactMatch: '=', // True busca la palabra completa, False solo un parcial -> recomendado
                 visible: '@', // lo que se va a mostrar en el listado, string separado por comas, sin espacios, y el nombre del campo de la tabla
                 selected: '=', // El objeto en donde queremos volcar la selecci?n
                 objeto: '=', // El objeto en donde queremos volcar la selecci?n,
-                function: '=', // Si se desea se pude pasar otra funci�n
-                minInput: '=' // Si se desea se pude pasar otra funci�n
+                func: '@', // Si se desea se pude pasar otra funciï¿½n
+                minInput: '=' // Si se desea se pude pasar otra funciï¿½n
             },
             controller: function ($scope, $element, $attrs) {
                 var vm = this;
@@ -65,7 +65,7 @@
                 };
 
 
-                // M�todo principal cuando tiene el foco o cuando presiona la tecla
+                // Mï¿½todo principal cuando tiene el foco o cuando presiona la tecla
                 $element.bind('keyup focus', function (event) {
                     $timeout.cancel(timeout);
 
@@ -77,18 +77,17 @@
 
                         // Consigo el servicio a partir del par?metro pasado en la directiva
                         var myService = $injector.get($attrs.service);
-                        var fn = ($scope.function != undefined) ? window[$scope.function] : window['getByParams'];
 
+                        if ($scope.func != undefined) {
+                            $injector.get($attrs.service)[$scope.func]($scope.params, $element.val(), function (data) {
+                                if (data.length > 0) {
 
-                        if ($scope.function != undefined) {
-                            var valores = $scope.params.split(',');
-                            valores.push(this.val());
-                            valores.push(function (data) {
-                                procesarRespuesta(data);
+                                    procesarRespuesta(data);
+                                }
                             });
-                            myService.fn.apply(this, valores);
+
                         } else {
-                            // Invoco al evento genérico
+                            // Invoco al evento genÃ©rico
                             myService.getByParams($attrs.params, $element.val(), $attrs.exactMatch, function (data) {
                                 procesarRespuesta(data);
                             });
@@ -162,7 +161,7 @@
                         vm.selectItem(vm.acItemListPanelSelected);
                     }
 
-                    // Agrego formatos b�sicos para la lista
+                    // Agrego formatos bï¿½sicos para la lista
                     lista.css('position', 'absolute');
                     lista.css('top', ($element[0].offsetTop + $element[0].offsetHeight) + 'px');
                     lista.css('left', $element[0].offsetLeft + 'px');
@@ -261,8 +260,8 @@
                             var exacto = (exactos.length == 1) ? exactos[0] : exactos[x];
                             exacto = exacto == 'true';
                             if (
-                                ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
-                                (!exact_match && base.toUpperCase().indexOf(valor.toUpperCase()) > -1)
+                                ( exacto && base.toUpperCase() == valor.toUpperCase()) ||
+                                (!exacto && base.toUpperCase().indexOf(valor.toUpperCase()) > -1)
                             ) {
                                 respuesta.push(data[y]);
                                 x = parametros.length;
