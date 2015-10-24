@@ -249,6 +249,7 @@
             var valores = values.split(',');
             var exactos = exact_match.split(',');
 
+
             var respuesta = [];
             for (var y = 0; y < data.length; y++) {
                 var columns = Object.keys(data[y]);
@@ -261,14 +262,28 @@
                             var valor = (valores.length == 1) ? '' + valores[0] : '' + valores[x];
                             var exacto = (exactos.length == 1) ? exactos[0] : exactos[x];
                             exacto = exacto == 'true';
-                            if (
-                                ( exacto && base.toUpperCase() == valor.toUpperCase()) ||
-                                (!exacto && base.toUpperCase().indexOf(valor.toUpperCase()) > -1)
-                            ) {
-                                respuesta.push(data[y]);
-                                x = parametros.length;
-                                i = columns.length;
+                            var negado = exacto.indexOf('!') > -1;
+
+                            if(negado){
+                                if (
+                                    ( exacto && base.toUpperCase() !== valor.toUpperCase()) ||
+                                    (!exacto && base.toUpperCase().indexOf(valor.toUpperCase()) == -1)
+                                ) {
+                                    respuesta.push(data[y]);
+                                    x = parametros.length;
+                                    i = columns.length;
+                                }
+                            }else{
+                                if (
+                                    ( exacto && base.toUpperCase() == valor.toUpperCase()) ||
+                                    (!exacto && base.toUpperCase().indexOf(valor.toUpperCase()) > -1)
+                                ) {
+                                    respuesta.push(data[y]);
+                                    x = parametros.length;
+                                    i = columns.length;
+                                }
                             }
+
                         }
                     }
                 }
