@@ -203,6 +203,9 @@
     function AcUtilsGlobals($rootScope) {
         this.isWaiting = false;
         this.sucursal_auxiliar_id = -1;
+        // Cantidad mínima de caracteres para que se ejecute getByParams
+        this.getByParamsLenght = 2;
+
         this.broadcast = function () {
             $rootScope.$broadcast("AcUtilsGlobalsValidations")
         };
@@ -241,6 +244,7 @@
          * @param callback
          */
         function getByParams(params, values, exact_match, data, callback) {
+
             if (data.length == 0) {
                 return;
             }
@@ -262,16 +266,26 @@
                             var valor = (valores.length == 1) ? '' + valores[0] : '' + valores[x];
                             var exacto = (exactos.length == 1) ? exactos[0] : exactos[x];
                             exacto = exacto == 'true';
-                            var negado = exacto.indexOf('!') > -1;
+                            var negado = valor.indexOf('!') > -1;
+
+                            // Indices para remover del array respuesta
+                            var index_a_sacar = [];
+
 
                             if(negado){
+
                                 if (
-                                    ( exacto && base.toUpperCase() !== valor.toUpperCase()) ||
-                                    (!exacto && base.toUpperCase().indexOf(valor.toUpperCase()) == -1)
+                                    ( exacto && base.toUpperCase() !== valor.toUpperCase().replace('!','')) ||
+                                    (!exacto && base.toUpperCase().indexOf(valor.toUpperCase().replace('!','')) == -1)
                                 ) {
                                     respuesta.push(data[y]);
                                     x = parametros.length;
                                     i = columns.length;
+
+                                }else{
+
+                                    index_a_sacar.push(y);
+
                                 }
                             }else{
                                 if (
