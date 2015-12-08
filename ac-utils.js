@@ -14,8 +14,118 @@
         .factory('AcUtils', AcUtils)
         .service('AcUtilsGlobals', AcUtilsGlobals)
         .directive('acSearchPanel', AcSearchPanel)
+        .directive('acValidator', AcValidator)
     ;
 
+
+    AcValidator.$inject = ["AcUtils", 'AcUtilsGlobals'];
+    function AcValidator(AcUtils, AcUtilsGlobals) {
+        return {
+            restrict: 'A',
+            scope: {
+                isRequired: '@', // Mensaje de error para el requerido, la presencia del mensaje significa que es requerido
+                minLength: '@', // Minima longitud de la cadena, separado por ; el mensaje para el error. Ej: min-length="5;El texto ingresado es demasiado corto"
+                maxLength: '@', // Máxima longitud de la cadena, separado por ; el mensaje para el error. Ej: min-length="5;El texto ingresado es demasiado largo"
+                isMail: '@', // Mensaje de error por si el formato del mail se incorrecto, la presencia del mensaje significa que es mail
+                minNumber: '@', // Número mínimo que puede ingresar, ej: min-number="5;El número debe ser mayor a 5"
+                maxNumber: '@' // Número máximo que puede ingresar, ej: min-number="5;El número debe ser menor a 5"
+            },
+            controller: function ($scope, $element, $attrs) {
+                var vm = this;
+
+                /**
+                 * En el caso que se necesite, borra todas las instancias de los mensajes de error. No usar en la mayoría de los casos.
+                 */
+                AcUtilsGlobals.listen(function () {
+                    var control = angular.element(document.querySelectorAll('.error-input'));
+                    var error = angular.element(document.querySelectorAll('.error-message'));
+
+
+                    for (var i = 0; i < control.length; i++) {
+
+                        control[i].classList.remove('error-input');
+                        control[i].removeEventListener('focus');
+                        //mensaje.remove();
+                    }
+                    for (var i = 0; i < error.length; i++) {
+                        error[i].remove();
+                    }
+                });
+
+                /**
+                 * Cuando el usuario abandona el control, se ejecuta la validación
+                 */
+                $element.bind('blur', function () {
+
+                    // Randomizo un id para el div que voy a crear con la descripción del error
+                    var id = Math.floor((Math.random() * 1000) + 1);
+                    var elem = $element;
+
+                    // Texto en donde mostrar el error, separo cada texto con </br>
+                    var texto = '';
+
+                    if ($scope.isRequired != undefined) {
+                        texto = texto + $scope.isRequired + '</br>';
+                    }
+
+                    if ($scope.minLength != undefined && $element.val().length < $scope.minLength.split(';')[0]) {
+                        texto = texto + $scope.minLength.split(';')[1] + '</br>';
+                    }
+
+                    if ($scope.maxLength != undefined && $element.val().length > $scope.maxLength.split(';')[0]) {
+                        texto = texto + $scope.maxLength.split(';')[1] + '</br>';
+                    }
+
+                    if ($scope.isMail != undefined && !AcUtils.validateEmail($element.val())) {
+                        texto = texto + $scope.isMail + '</br>';
+                    }
+
+                    if ($scope.minNumber != undefined && parseFloat($element.val()) < parseFloat($scope.minNumber.split(';')[0])) {
+                        texto = texto + $scope.minNumber.split(';')[1] + '</br>';
+                    }
+
+                    if ($scope.maxNumber != undefined && parseFloat($element.val()) < parseFloat($scope.maxLength.split(';')[0])) {
+                        texto = texto + $scope.maxNumber.split(';')[1] + '</br>';
+                    }
+
+                    texto = texto.substr(0, texto.length - 5);
+
+                    // Si no hay errores me voy de la función
+                    if (texto.trim().length == 0) {
+                        return;
+                    }
+
+                    //Agrego la visualización del error
+                    elem.addClass('error-input');
+
+
+                    elem.after('<div class="error-message" id="error-' + id + '">' + texto + '</div>');
+                    var mensaje = angular.element(document.querySelector('#error-' + id));
+
+
+                    mensaje.css('top', (elem[0].offsetTop + elem[0].offsetHeight) + 'px');
+                    mensaje.css('left', elem[0].offsetLeft + 'px');
+
+                    clear();
+
+                    function clear() {
+                        elem[0].addEventListener('focus', function () {
+                            elem.removeClass('error-input');
+                            elem[0].removeEventListener('focus');
+                            mensaje.remove();
+                        });
+                    }
+                });
+
+
+            },
+            link: function (scope, element, attr) {
+
+
+            },
+            controllerAs: 'acSearchCtrl'
+        };
+    }
 
     /**
      * Directiva que muestra un panel de resultados de las b?squedas. Para darle aspecto, utilizar .ac-result-panel
@@ -195,10 +305,16 @@
         };
     }
 
+
     AcUtilsController.$inject = [];
     function AcUtilsController() {
     }
 
+
+    /**
+     * Expone variables de control de la clase
+     * @type {string[]}
+     */
     AcUtilsGlobals.$inject = ['$rootScope'];
     function AcUtilsGlobals($rootScope) {
         this.isWaiting = false;
@@ -222,7 +338,10 @@
         };
     }
 
-
+    /**
+     * Expone validaciones y otras herramientas de uso común
+     * @type {string[]}
+     */
     AcUtils.$inject = ['AcUtilsGlobals'];
     function AcUtils(AcUtilsGlobals) {
         var service = {};
@@ -272,22 +391,22 @@
                             var index_a_sacar = [];
 
 
-                            if(negado){
+                            if (negado) {
 
                                 if (
-                                    ( exacto && base.toUpperCase() !== valor.toUpperCase().replace('!','')) ||
-                                    (!exacto && base.toUpperCase().indexOf(valor.toUpperCase().replace('!','')) == -1)
+                                    ( exacto && base.toUpperCase() !== valor.toUpperCase().replace('!', '')) ||
+                                    (!exacto && base.toUpperCase().indexOf(valor.toUpperCase().replace('!', '')) == -1)
                                 ) {
                                     respuesta.push(data[y]);
                                     x = parametros.length;
                                     i = columns.length;
 
-                                }else{
+                                } else {
 
                                     index_a_sacar.push(y);
 
                                 }
-                            }else{
+                            } else {
                                 if (
                                     ( exacto && base.toUpperCase() == valor.toUpperCase()) ||
                                     (!exacto && base.toUpperCase().indexOf(valor.toUpperCase()) > -1)
