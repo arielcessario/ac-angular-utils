@@ -28,7 +28,9 @@
                 maxLength: '@', // Máxima longitud de la cadena, separado por ; el mensaje para el error. Ej: min-length="5;El texto ingresado es demasiado largo"
                 isMail: '@', // Mensaje de error por si el formato del mail se incorrecto, la presencia del mensaje significa que es mail
                 minNumber: '@', // Número mínimo que puede ingresar, ej: min-number="5;El número debe ser mayor a 5"
-                maxNumber: '@' // Número máximo que puede ingresar, ej: min-number="5;El número debe ser menor a 5"
+                maxNumber: '@', // Número máximo que puede ingresar, ej: min-number="5;El número debe ser menor a 5"
+                minDate: '@', // Compara la fecha. ej: min-date="today;La fecha no puede ser menor a hoy" / También se pueden enviar fechas variables {{'11/25/2015'}}
+                maxDate: '@' // Compara la fecha
             },
             controller: function ($scope, $element, $attrs) {
                 var vm = this;
@@ -53,9 +55,105 @@
                 });
 
                 /**
+                 * @description Busca el padre del formulario, esta clave obtenida luego se usa para ver si tiene errores encolados
+                 * @param el
+                 */
+                function getMainContainer(el) {
+                    while (el.parent()) {
+                        el = el.parent();
+                        for (var i = 0; i < el[0].attributes.length; i++) {
+                            if (el[0].attributes[i].nodeName == 'form-id') {
+                                return (el[0].attributes[i].nodeValue);
+                            }
+                        }
+                    }
+                    return null;
+                }
+
+                /**
+                 * @description Agrega un error al formulario para evitar que se ejecute cualquier acción
+                 * @param parent
+                 */
+                function addError(parent) {
+                    var index = -1;
+                    var sub_index = -1;
+                    for (var i = 0; i < AcUtilsGlobals.errores.length; i++) {
+                        if (AcUtilsGlobals.errores[i].parent == parent) {
+                            index = i;
+                            for (var x = 0; x < AcUtilsGlobals.errores[i].errores.length; x++) {
+                                if (AcUtilsGlobals.errores[i].errores[x].control == $element[0].id) {
+                                    sub_index = x;
+                                }
+                            }
+                        }
+                    }
+
+                    if (index == -1) {
+                        // No existe el formulario en el array de errores, tampoco va a existir el control así que creo todo
+                        AcUtilsGlobals.errores.push({parent: parent, errores: [{control: $element[0].id}]});
+                    } else {
+                        // Existe el formulario, veo si existe el control
+                        if (sub_index == -1) {
+                            AcUtilsGlobals.errores[index].errores.push({control: $element[0].id});
+                        }
+                    }
+                    console.log(AcUtilsGlobals.errores);
+
+                }
+
+                /**
+                 * @description Remueve el estado de error para el formulario
+                 * @param parent
+                 */
+                function removeError(parent) {
+                    var index = -1;
+                    var sub_index = -1;
+                    for (var i = 0; i < AcUtilsGlobals.errores.length; i++) {
+                        if (AcUtilsGlobals.errores[i].parent == parent) {
+                            index = i;
+                            for (var x = 0; x < AcUtilsGlobals.errores[i].errores.length; x++) {
+                                if (AcUtilsGlobals.errores[i].errores[x].control == $element[0].id) {
+                                    sub_index = x;
+                                }
+                            }
+                        }
+                    }
+
+                    if (index != -1 && sub_index != -1) {
+                        AcUtilsGlobals.errores[index].errores.splice(sub_index, 1);
+                    }
+
+                }
+
+                /**
+                 * Dentro de esta función valido el evento click y si no está todo ok en el formulario, no lo ejecuto
+                 */
+                $element.bind('click', function (e) {
+                    if ($element[0].tagName == 'BUTTON' || $element[0].type == 'button') {
+
+                        var parent = getMainContainer($element);
+
+                        for (var i = 0; i < AcUtilsGlobals.errores.length; i++) {
+                            if (AcUtilsGlobals.errores[i].parent == parent &&
+                                AcUtilsGlobals.errores[i].errores.length > 0) {
+
+                                e.stopImmediatePropagation();
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        }
+                    }
+                });
+
+                /**
                  * Cuando el usuario abandona el control, se ejecuta la validación
                  */
                 $element.bind('blur', function () {
+
+                    // No hago nada en el blur del botón
+                    if ($element[0].tagName == 'BUTTON' || $element[0].type == 'button') {
+                        return;
+                    }
 
                     // Randomizo un id para el div que voy a crear con la descripción del error
                     var id = Math.floor((Math.random() * 1000) + 1);
@@ -64,35 +162,73 @@
                     // Texto en donde mostrar el error, separo cada texto con </br>
                     var texto = '';
 
-                    if ($scope.isRequired != undefined) {
+
+                    // Verifico requerido
+                    if ($scope.isRequired != undefined && $element.val().trim().length == 0) {
                         texto = texto + $scope.isRequired + '</br>';
                     }
 
+                    // Verifico longitud mínima
                     if ($scope.minLength != undefined && $element.val().length < $scope.minLength.split(';')[0]) {
                         texto = texto + $scope.minLength.split(';')[1] + '</br>';
                     }
 
+                    // Verifico longitud máxima
                     if ($scope.maxLength != undefined && $element.val().length > $scope.maxLength.split(';')[0]) {
                         texto = texto + $scope.maxLength.split(';')[1] + '</br>';
                     }
 
+                    // Verifico si el mail es correcto
                     if ($scope.isMail != undefined && !AcUtils.validateEmail($element.val())) {
                         texto = texto + $scope.isMail + '</br>';
                     }
 
+                    // Verifico floor
                     if ($scope.minNumber != undefined && parseFloat($element.val()) < parseFloat($scope.minNumber.split(';')[0])) {
                         texto = texto + $scope.minNumber.split(';')[1] + '</br>';
                     }
 
+                    // Verifico ceiling
                     if ($scope.maxNumber != undefined && parseFloat($element.val()) < parseFloat($scope.maxLength.split(';')[0])) {
                         texto = texto + $scope.maxNumber.split(';')[1] + '</br>';
+                    }
+
+                    // Verifico fecha mínima
+                    if ($scope.minDate != undefined) {
+                        if ($scope.minDate.split(';')[0] == 'today') {
+                            if (new Date($element.val()) < new Date()) {
+                                texto = texto + $scope.minDate.split(';')[1] + '</br>';
+                            }
+                        } else {
+                            if ((new Date($element.val()) < new Date($scope.minDate.split(';')[0]))) {
+                                texto = texto + $scope.minDate.split(';')[1] + '</br>';
+                            }
+                        }
+                    }
+
+                    // Verifico fecha máxima
+                    if ($scope.maxDate != undefined) {
+                        if ($scope.maxDate.split(';')[0] == 'today') {
+                            if (new Date($element.val()) > new Date()) {
+                                texto = texto + $scope.maxDate.split(';')[1] + '</br>';
+                            }
+                        } else {
+                            if ((new Date($element.val()) > new Date($scope.minDate.split(';')[0]))) {
+                                texto = texto + $scope.maxDate.split(';')[1] + '</br>';
+                            }
+                        }
                     }
 
                     texto = texto.substr(0, texto.length - 5);
 
                     // Si no hay errores me voy de la función
                     if (texto.trim().length == 0) {
+                        // Remuevo el error si existe y salgo de la validación
+                        removeError(getMainContainer(elem));
                         return;
+                    } else {
+                        // Agrego el campo con error al
+                        addError(getMainContainer(elem));
                     }
 
                     //Agrego la visualización del error
@@ -113,6 +249,7 @@
                             elem.removeClass('error-input');
                             elem[0].removeEventListener('focus');
                             mensaje.remove();
+                            removeError(getMainContainer(elem));
                         });
                     }
                 });
@@ -120,7 +257,6 @@
 
             },
             link: function (scope, element, attr) {
-
 
             },
             controllerAs: 'acSearchCtrl'
@@ -321,6 +457,7 @@
         this.sucursal_auxiliar_id = -1;
         // Cantidad mínima de caracteres para que se ejecute getByParams
         this.getByParamsLenght = 2;
+        this.errores = [];
 
         this.broadcast = function () {
             $rootScope.$broadcast("AcUtilsGlobalsValidations")
