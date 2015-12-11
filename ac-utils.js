@@ -258,6 +258,7 @@
             },
             link: function (scope, element, attr) {
 
+
             },
             controllerAs: 'acSearchCtrl'
         };
