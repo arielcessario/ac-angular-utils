@@ -609,7 +609,7 @@
             obj.isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
             /* At least Safari 3+: "[object HTMLElementConstructor]"*/
             obj.isChrome = !!window.chrome && !isOpera;              /* Chrome 1+*/
-            obj.isIE = /*@cc_on!@*/false || !!document.documentMode; /* At least IE6*/
+            obj.isIE = false || !!document.documentMode; /* At least IE6*/
 
 
             return obj;
