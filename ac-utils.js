@@ -18,8 +18,8 @@
     ;
 
 
-    AcValidator.$inject = ["AcUtils", 'AcUtilsGlobals'];
-    function AcValidator(AcUtils, AcUtilsGlobals) {
+    AcValidator.$inject = ["AcUtils", 'AcUtilsGlobals', '$timeout'];
+    function AcValidator(AcUtils, AcUtilsGlobals, $timeout) {
         return {
             restrict: 'A',
             scope: {
@@ -30,10 +30,16 @@
                 minNumber: '@', // Número mínimo que puede ingresar, ej: min-number="5;El número debe ser mayor a 5"
                 maxNumber: '@', // Número máximo que puede ingresar, ej: min-number="5;El número debe ser menor a 5"
                 minDate: '@', // Compara la fecha. ej: min-date="today;La fecha no puede ser menor a hoy" / También se pueden enviar fechas variables {{'11/25/2015'}}
-                maxDate: '@' // Compara la fecha
+                maxDate: '@', // Compara la fecha
+                ngModel: '=' // Compara la fecha
             },
             controller: function ($scope, $element, $attrs) {
                 var vm = this;
+
+
+                // Agrego siempre el error, luego se va cuando completo bien los datos requeridos
+                addError(getMainContainer($element));
+
 
                 /**
                  * En el caso que se necesite, borra todas las instancias de los mensajes de error. No usar en la mayoría de los casos.
@@ -75,6 +81,12 @@
                  * @param parent
                  */
                 function addError(parent) {
+
+                    if ($element[0].id.trim().length == 0) {
+                        return;
+                    }
+
+
                     var index = -1;
                     var sub_index = -1;
                     for (var i = 0; i < AcUtilsGlobals.errores.length; i++) {
@@ -97,7 +109,6 @@
                             AcUtilsGlobals.errores[index].errores.push({control: $element[0].id});
                         }
                     }
-                    console.log(AcUtilsGlobals.errores);
 
                 }
 
@@ -137,9 +148,12 @@
                             if (AcUtilsGlobals.errores[i].parent == parent &&
                                 AcUtilsGlobals.errores[i].errores.length > 0) {
 
+
+                                AcUtils.showMessage('error', 'Existen errores en el formulario, por favor corríjalos y vuelva a intentar');
                                 e.stopImmediatePropagation();
                                 e.preventDefault();
                                 e.stopPropagation();
+                                return;
                             }
                         }
                     }
@@ -148,7 +162,31 @@
                 /**
                  * Cuando el usuario abandona el control, se ejecuta la validación
                  */
-                $element.bind('blur', function () {
+                $element.bind('blur', onChange);
+                $scope.$watch('ngModel', function (newVal, oldVal) {
+
+                    onChange(newVal, oldVal, 'ngModel');
+                });
+
+                /**
+                 * Function validadora
+                 * @param v nuevo valor
+                 * @param value origen de la llamada de la función
+                 */
+                function onChange(v, o, value) {
+
+                    // Fallback para cuando se inicializa el control
+                    // v es undefined en el onload
+                    if (value == 'ngModel' && (v == undefined || v.length == 0)) {
+                        return;
+                    }
+                    v = (v == undefined) ? '' : v;
+
+                    o = (o == undefined) ? '' : o;
+
+                    if (Math.abs(v.length - o.length) == 1) {
+                        return;
+                    }
 
                     // No hago nada en el blur del botón
                     if ($element[0].tagName == 'BUTTON' || $element[0].type == 'button') {
@@ -252,12 +290,10 @@
                             removeError(getMainContainer(elem));
                         });
                     }
-                });
-
+                }
 
             },
-            link: function (scope, element, attr) {
-
+            link: function (scope, element, attrs, ctrl) {
 
             },
             controllerAs: 'acSearchCtrl'
@@ -480,14 +516,15 @@
      * Expone validaciones y otras herramientas de uso común
      * @type {string[]}
      */
-    AcUtils.$inject = ['AcUtilsGlobals'];
-    function AcUtils(AcUtilsGlobals) {
+    AcUtils.$inject = ['AcUtilsGlobals', '$document', '$timeout'];
+    function AcUtils(AcUtilsGlobals, $document, $timeout) {
         var service = {};
 
         service.validateEmail = validateEmail;
         service.validations = validations;
         service.verifyBrowser = verifyBrowser;
         service.getByParams = getByParams;
+        service.showMessage = showMessage;
 
         return service;
 
@@ -620,6 +657,23 @@
                 }
             });
 
+        }
+
+        function showMessage(tipo, texto, timeout) {
+            var body = $document.find('body').eq(0);
+
+            var class_type = (tipo == 'error') ? 'ac-error-message' : 'ac-success-message';
+            body.append('<div ' +
+                'style="position: fixed; height: 100px; width: 250px; top:50%; left: calc(50% - 125px);" ' +
+                'class="ac-mensaje-custom-show ' + class_type + '" ' +
+                'id="ac-mensaje-custom" onclick="this.remove();">' + texto + '</div>');
+
+
+            timeout = (timeout == undefined) ? 3000 : timeout;
+            $timeout(function () {
+                var el = angular.element(document.querySelector('#ac-mensaje-custom'));
+                el.remove();
+            }, timeout);
         }
     }
 
