@@ -82,7 +82,8 @@
                  */
                 function addError(parent) {
 
-                    if ($element[0].id.trim().length == 0) {
+                    if ($element[0].id.trim().length == 0 ||
+                        ($element[0].tagName == 'BUTTON' || $element[0].type == 'button')) {
                         return;
                     }
 
@@ -604,16 +605,14 @@
 
             var obj = {};
             obj.isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-            /* Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)*/
-            obj.isFirefox = typeof InstallTrigger !== 'undefined';   /* Firefox 1.0+*/
+            // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+            obj.isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
             obj.isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-            /* At least Safari 3+: "[object HTMLElementConstructor]"*/
-            obj.isChrome = !!window.chrome && !isOpera;              /* Chrome 1+*/
-            obj.isIE = false || !!document.documentMode; /* At least IE6*/
-
+            // At least Safari 3+: "[object HTMLElementConstructor]"
+            obj.isChrome = !!window.chrome && !isOpera;              // Chrome 1+
+            obj.isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
 
             return obj;
-
         }
 
         function validateEmail(email) {
