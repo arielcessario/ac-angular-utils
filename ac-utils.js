@@ -26,7 +26,8 @@
                 isRequired: '@', // Mensaje de error para el requerido, la presencia del mensaje significa que es requerido
                 minLength: '@', // Minima longitud de la cadena, separado por ; el mensaje para el error. Ej: min-length="5;El texto ingresado es demasiado corto"
                 maxLength: '@', // Máxima longitud de la cadena, separado por ; el mensaje para el error. Ej: min-length="5;El texto ingresado es demasiado largo"
-                isMail: '@', // Mensaje de error por si el formato del mail se incorrecto, la presencia del mensaje significa que es mail
+                isMail: '@', // Mensaje de error por si el formato del mail es incorrecto, la presencia del mensaje significa que es mail
+                isCuit: '@', // Mensaje de error por si el formato del CUIT es incorrecto, la presencia del mensaje significa que es CUIT
                 minNumber: '@', // Número mínimo que puede ingresar, ej: min-number="5;El número debe ser mayor a 5"
                 maxNumber: '@', // Número máximo que puede ingresar, ej: min-number="5;El número debe ser menor a 5"
                 minDate: '@', // Compara la fecha. ej: min-date="today;La fecha no puede ser menor a hoy" / También se pueden enviar fechas variables {{'11/25/2015'}}
@@ -133,6 +134,9 @@
 
                     if (index != -1 && sub_index != -1) {
                         AcUtilsGlobals.errores[index].errores.splice(sub_index, 1);
+                        var mensaje = angular.element(document.querySelector('#error-' + $element[0].id));
+                        mensaje.remove();
+                        $element.removeClass('error-input');
                     }
 
                 }
@@ -148,7 +152,17 @@
                         for (var i = 0; i < AcUtilsGlobals.errores.length; i++) {
                             if (AcUtilsGlobals.errores[i].parent == parent &&
                                 AcUtilsGlobals.errores[i].errores.length > 0) {
-
+                                for (var x = 0; x < AcUtilsGlobals.errores[i].errores.length; x++) {
+                                    (function () {
+                                        var elem = angular.element(document.querySelector('#' + AcUtilsGlobals.errores[i].errores[x].control));
+                                        elem.addClass('error-input');
+                                        elem[0].addEventListener('focus', function () {
+                                            elem.removeClass('error-input');
+                                            elem[0].removeEventListener('focus');
+                                            removeError(getMainContainer(elem));
+                                        });
+                                    })();
+                                }
 
                                 AcUtils.showMessage('error', 'Existen errores en el formulario, por favor corríjalos y vuelva a intentar');
                                 e.stopImmediatePropagation();
@@ -222,6 +236,11 @@
                         texto = texto + $scope.isMail + '</br>';
                     }
 
+                    // Verifico si el CUIT/CUIL es correcto
+                    if ($scope.isCuit != undefined && $element.val().length != 8 && !validaCuit($element.val())) {
+                        texto = texto + $scope.isCuit + '</br>';
+                    }
+
                     // Verifico floor
                     if ($scope.minNumber != undefined && parseFloat($element.val()) < parseFloat($scope.minNumber.split(';')[0])) {
                         texto = texto + $scope.minNumber.split(';')[1] + '</br>';
@@ -274,8 +293,10 @@
                     elem.addClass('error-input');
 
 
-                    elem.after('<div class="error-message" id="error-' + id + '">' + texto + '</div>');
-                    var mensaje = angular.element(document.querySelector('#error-' + id));
+                    if (angular.element(document.querySelector('#error-' + elem[0].id)).length == 0) {
+                        elem.after('<div class="error-message" id="error-' + elem[0].id + '">' + texto + '</div>');
+                    }
+                    var mensaje = angular.element(document.querySelector('#error-' + elem[0].id));
 
 
                     mensaje.css('top', (elem[0].offsetTop + elem[0].offsetHeight) + 'px');
@@ -291,6 +312,33 @@
                             removeError(getMainContainer(elem));
                         });
                     }
+                }
+
+
+                /**
+                 * Validación de CUIT/CUIL
+                 * @param sCUIT
+                 * @returns {boolean}
+                 */
+                function validaCuit(sCUIT) {
+                    var aMult = '6789456789';
+                    var aMult = aMult.split('');
+                    var sCUIT = String(sCUIT);
+                    var iResult = 0;
+                    var aCUIT = sCUIT.split('');
+
+                    if (aCUIT.length == 11) {
+                        // La suma de los productos
+                        for (var i = 0; i <= 9; i++) {
+                            iResult += aCUIT[i] * aMult[i];
+                        }
+                        // El módulo de 11
+                        iResult = (iResult % 11);
+
+                        // Se compara el resultado con el dígito verificador
+                        return (iResult == aCUIT[10]);
+                    }
+                    return false;
                 }
 
             },
