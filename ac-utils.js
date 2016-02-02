@@ -247,7 +247,7 @@
                     }
 
                     // Verifico ceiling
-                    if ($scope.maxNumber != undefined && parseFloat($element.val()) < parseFloat($scope.maxLength.split(';')[0])) {
+                    if ($scope.maxNumber != undefined && parseFloat($element.val()) < parseFloat($scope.maxNumber.split(';')[0])) {
                         texto = texto + $scope.maxNumber.split(';')[1] + '</br>';
                     }
 
