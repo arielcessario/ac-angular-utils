@@ -88,8 +88,89 @@
                         return;
                     }
 
+                    var elem = $element;
 
-                    var index = -1;
+                    // Randomizo un id para el div que voy a crear con la descripción del error
+                    var id = Math.floor((Math.random() * 1000) + 1);
+
+
+                    // Texto en donde mostrar el error, separo cada texto con </br>
+                    var texto = '';
+
+
+                    // Verifico requerido
+                    if ($scope.isRequired != undefined && $element.val().trim().length == 0) {
+                        texto = texto + $scope.isRequired + '</br>';
+                    }
+
+                    // Verifico longitud mínima
+                    if ($scope.minLength != undefined && $element.val().length < $scope.minLength.split(';')[0]) {
+                        texto = texto + $scope.minLength.split(';')[1] + '</br>';
+                    }
+
+                    // Verifico longitud máxima
+                    if ($scope.maxLength != undefined && $element.val().length > $scope.maxLength.split(';')[0]) {
+                        texto = texto + $scope.maxLength.split(';')[1] + '</br>';
+                    }
+
+                    // Verifico si el mail es correcto
+                    if ($scope.isMail != undefined && !AcUtils.validateEmail($element.val())) {
+                        texto = texto + $scope.isMail + '</br>';
+                    }
+
+                    // Verifico si el CUIT/CUIL es correcto
+                    if ($scope.isCuit != undefined && $element.val().length != 8 && !validaCuit($element.val())) {
+                        texto = texto + $scope.isCuit + '</br>';
+                    }
+
+                    // Verifico floor
+                    if ($scope.minNumber != undefined && (parseFloat($element.val()) < parseFloat($scope.minNumber.split(';')[0]) || isNaN(parseFloat($element.val())))) {
+                        texto = texto + $scope.minNumber.split(';')[1] + '</br>';
+                    }
+
+                    // Verifico ceiling
+                    if ($scope.maxNumber != undefined && (parseFloat($element.val()) > parseFloat($scope.maxNumber.split(';')[0]) || isNaN(parseFloat($element.val())))) {
+                        texto = texto + $scope.maxNumber.split(';')[1] + '</br>';
+                    }
+
+                    // Verifico fecha mínima
+                    if ($scope.minDate != undefined) {
+                        if ($scope.minDate.split(';')[0] == 'today') {
+                            if (new Date($element.val()) < new Date()) {
+                                texto = texto + $scope.minDate.split(';')[1] + '</br>';
+                            }
+                        } else {
+                            if ((new Date($element.val()) < new Date($scope.minDate.split(';')[0]))) {
+                                texto = texto + $scope.minDate.split(';')[1] + '</br>';
+                            }
+                        }
+                    }
+
+                    // Verifico fecha máxima
+                    if ($scope.maxDate != undefined) {
+                        if ($scope.maxDate.split(';')[0] == 'today') {
+                            if (new Date($element.val()) > new Date()) {
+                                texto = texto + $scope.maxDate.split(';')[1] + '</br>';
+                            }
+                        } else {
+                            if ((new Date($element.val()) > new Date($scope.minDate.split(';')[0]))) {
+                                texto = texto + $scope.maxDate.split(';')[1] + '</br>';
+                            }
+                        }
+                    }
+
+                    texto = texto.substr(0, texto.length - 5);
+
+                    // Si no hay errores me voy de la función
+                    if (texto.trim().length == 0) {
+                        // Remuevo el error si existe y salgo de la validación
+                        removeError(getMainContainer(elem));
+                        return;
+                    } else
+
+
+
+                        var index = -1;
                     var sub_index = -1;
                     for (var i = 0; i < AcUtilsGlobals.errores.length; i++) {
                         if (AcUtilsGlobals.errores[i].parent == parent) {
@@ -104,13 +185,18 @@
 
                     if (index == -1) {
                         // No existe el formulario en el array de errores, tampoco va a existir el control así que creo todo
-                        AcUtilsGlobals.errores.push({parent: parent, errores: [{control: $element[0].id}]});
+                        AcUtilsGlobals.errores.push({
+                            parent: parent,
+                            errores: [{control: $element[0].id, texto: texto}]
+                        });
                     } else {
                         // Existe el formulario, veo si existe el control
                         if (sub_index == -1) {
-                            AcUtilsGlobals.errores[index].errores.push({control: $element[0].id});
+                            AcUtilsGlobals.errores[index].errores.push({control: $element[0].id, texto: texto});
                         }
                     }
+
+                    return texto;
 
                 }
 
@@ -162,9 +248,15 @@
                                             removeError(getMainContainer(elem));
                                         });
                                     })();
+
+
+                                    addMessages(angular.element(document.querySelector('#' + AcUtilsGlobals.errores[i].errores[x].control)), AcUtilsGlobals.errores[i].errores[x].texto);
+
                                 }
 
-                                AcUtils.showMessage('error', 'Existen errores en el formulario, por favor corríjalos y vuelva a intentar');
+                                //AcUtils.showMessage('error', 'Existen errores en el formulario, por favor corríjalos y vuelva a intentar');
+
+
                                 e.stopImmediatePropagation();
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -208,86 +300,21 @@
                         return;
                     }
 
-                    // Randomizo un id para el div que voy a crear con la descripción del error
-                    var id = Math.floor((Math.random() * 1000) + 1);
+
                     var elem = $element;
+                    var texto = addError(getMainContainer($element));
+                    addMessages(elem, texto);
 
-                    // Texto en donde mostrar el error, separo cada texto con </br>
-                    var texto = '';
+                }
 
 
-                    // Verifico requerido
-                    if ($scope.isRequired != undefined && $element.val().trim().length == 0) {
-                        texto = texto + $scope.isRequired + '</br>';
-                    }
+                /**
+                 * @description Agrega visualización del error y el callback para limpiarla
+                 * @param elem
+                 * @param texto
+                 */
+                function addMessages(elem, texto) {
 
-                    // Verifico longitud mínima
-                    if ($scope.minLength != undefined && $element.val().length < $scope.minLength.split(';')[0]) {
-                        texto = texto + $scope.minLength.split(';')[1] + '</br>';
-                    }
-
-                    // Verifico longitud máxima
-                    if ($scope.maxLength != undefined && $element.val().length > $scope.maxLength.split(';')[0]) {
-                        texto = texto + $scope.maxLength.split(';')[1] + '</br>';
-                    }
-
-                    // Verifico si el mail es correcto
-                    if ($scope.isMail != undefined && !AcUtils.validateEmail($element.val())) {
-                        texto = texto + $scope.isMail + '</br>';
-                    }
-
-                    // Verifico si el CUIT/CUIL es correcto
-                    if ($scope.isCuit != undefined && $element.val().length != 8 && !validaCuit($element.val())) {
-                        texto = texto + $scope.isCuit + '</br>';
-                    }
-
-                    // Verifico floor
-                    if ($scope.minNumber != undefined && parseFloat($element.val()) < parseFloat($scope.minNumber.split(';')[0])) {
-                        texto = texto + $scope.minNumber.split(';')[1] + '</br>';
-                    }
-
-                    // Verifico ceiling
-                    if ($scope.maxNumber != undefined && parseFloat($element.val()) > parseFloat($scope.maxNumber.split(';')[0])) {
-                        texto = texto + $scope.maxNumber.split(';')[1] + '</br>';
-                    }
-
-                    // Verifico fecha mínima
-                    if ($scope.minDate != undefined) {
-                        if ($scope.minDate.split(';')[0] == 'today') {
-                            if (new Date($element.val()) < new Date()) {
-                                texto = texto + $scope.minDate.split(';')[1] + '</br>';
-                            }
-                        } else {
-                            if ((new Date($element.val()) < new Date($scope.minDate.split(';')[0]))) {
-                                texto = texto + $scope.minDate.split(';')[1] + '</br>';
-                            }
-                        }
-                    }
-
-                    // Verifico fecha máxima
-                    if ($scope.maxDate != undefined) {
-                        if ($scope.maxDate.split(';')[0] == 'today') {
-                            if (new Date($element.val()) > new Date()) {
-                                texto = texto + $scope.maxDate.split(';')[1] + '</br>';
-                            }
-                        } else {
-                            if ((new Date($element.val()) > new Date($scope.minDate.split(';')[0]))) {
-                                texto = texto + $scope.maxDate.split(';')[1] + '</br>';
-                            }
-                        }
-                    }
-
-                    texto = texto.substr(0, texto.length - 5);
-
-                    // Si no hay errores me voy de la función
-                    if (texto.trim().length == 0) {
-                        // Remuevo el error si existe y salgo de la validación
-                        removeError(getMainContainer(elem));
-                        return;
-                    } else {
-                        // Agrego el campo con error al
-                        addError(getMainContainer(elem));
-                    }
 
                     //Agrego la visualización del error
                     elem.addClass('error-input');
