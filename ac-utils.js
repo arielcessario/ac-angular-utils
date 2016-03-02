@@ -162,41 +162,25 @@
                     texto = texto.substr(0, texto.length - 5);
 
                     // Si no hay errores me voy de la función
-                    if (texto.trim().length == 0) {
+                    if (texto == undefined || texto == 'undefined' || texto.trim().length == 0) {
                         // Remuevo el error si existe y salgo de la validación
                         removeError(getMainContainer(elem));
                         return;
-                    } else
-
-
-
-                        var index = -1;
-                    var sub_index = -1;
-                    for (var i = 0; i < AcUtilsGlobals.errores.length; i++) {
-                        if (AcUtilsGlobals.errores[i].parent == parent) {
-                            index = i;
-                            for (var x = 0; x < AcUtilsGlobals.errores[i].errores.length; x++) {
-                                if (AcUtilsGlobals.errores[i].errores[x].control == $element[0].id) {
-                                    sub_index = x;
-                                }
-                            }
-                        }
                     }
 
-                    if (index == -1) {
-                        // No existe el formulario en el array de errores, tampoco va a existir el control así que creo todo
-                        AcUtilsGlobals.errores.push({
-                            parent: parent,
-                            errores: [{control: $element[0].id, texto: texto}]
-                        });
-                    } else {
-                        // Existe el formulario, veo si existe el control
-                        if (sub_index == -1) {
-                            AcUtilsGlobals.errores[index].errores.push({control: $element[0].id, texto: texto});
-                        }
+
+                    // Obtengo el nodo con propiedad que se llame como el padre
+                    if (!AcUtilsGlobals.errores.hasOwnProperty(parent)) {
+                        AcUtilsGlobals.errores[parent] = {};
                     }
 
-                    return texto;
+                    // Obtengo el nodo relacionado al control que estoy mirando, si no existe, lo creo
+                    if (!AcUtilsGlobals.errores[parent].hasOwnProperty($element[0].id)) {
+                        AcUtilsGlobals.errores[parent][$element[0].id] = {};
+                    }
+
+                    // Sobreescribo el valor del texto que contiene la descr del error
+                    AcUtilsGlobals.errores[parent][$element[0].id]['texto'] = texto;
 
                 }
 
@@ -205,21 +189,21 @@
                  * @param parent
                  */
                 function removeError(parent) {
-                    var index = -1;
-                    var sub_index = -1;
-                    for (var i = 0; i < AcUtilsGlobals.errores.length; i++) {
-                        if (AcUtilsGlobals.errores[i].parent == parent) {
-                            index = i;
-                            for (var x = 0; x < AcUtilsGlobals.errores[i].errores.length; x++) {
-                                if (AcUtilsGlobals.errores[i].errores[x].control == $element[0].id) {
-                                    sub_index = x;
-                                }
-                            }
-                        }
+
+                    // Si no existe el padre, salgo ya que no tiene errores
+                    if (!AcUtilsGlobals.errores.hasOwnProperty(parent)) {
+                        return;
                     }
 
-                    if (index != -1 && sub_index != -1) {
-                        AcUtilsGlobals.errores[index].errores.splice(sub_index, 1);
+                    // verifico si algún hijo tiene errores
+                    if (AcUtilsGlobals.errores[parent].hasOwnProperty($element[0].id)) {
+                        delete AcUtilsGlobals.errores[parent][$element[0].id];
+
+                        if (Object.keys(AcUtilsGlobals.errores[parent]).length === 0) {
+                            delete AcUtilsGlobals.errores[parent];
+                        }
+
+
                         var mensaje = angular.element(document.querySelector('#error-' + $element[0].id));
                         mensaje.remove();
                         $element.removeClass('error-input');
@@ -230,46 +214,44 @@
                 /**
                  * Dentro de esta función valido el evento click y si no está todo ok en el formulario, no lo ejecuto
                  */
-                $element.bind('click', function (e) {
-                    if ($element[0].tagName == 'BUTTON' || $element[0].type == 'button') {
-
+                if ($element[0].tagName == 'BUTTON' || $element[0].type == 'button') {
+                    $element.bind('click', function (e) {
                         var parent = getMainContainer($element);
-
-                        for (var i = 0; i < AcUtilsGlobals.errores.length; i++) {
-                            if (AcUtilsGlobals.errores[i].parent == parent &&
-                                AcUtilsGlobals.errores[i].errores.length > 0) {
-                                for (var x = 0; x < AcUtilsGlobals.errores[i].errores.length; x++) {
-                                    (function () {
-                                        var elem = angular.element(document.querySelector('#' + AcUtilsGlobals.errores[i].errores[x].control));
-                                        elem.addClass('error-input');
-                                        elem[0].addEventListener('focus', function () {
-                                            elem.removeClass('error-input');
-                                            elem[0].removeEventListener('focus');
-                                            removeError(getMainContainer(elem));
-                                        });
-                                    })();
-
-
-                                    addMessages(angular.element(document.querySelector('#' + AcUtilsGlobals.errores[i].errores[x].control)), AcUtilsGlobals.errores[i].errores[x].texto);
-
-                                }
-
-                                //AcUtils.showMessage('error', 'Existen errores en el formulario, por favor corríjalos y vuelva a intentar');
-
-
-                                e.stopImmediatePropagation();
-                                e.preventDefault();
-                                e.stopPropagation();
-                                return;
-                            }
+                        // Si no existe el padre, salgo ya que no tiene errores
+                        if (!AcUtilsGlobals.errores.hasOwnProperty(parent)) {
+                            return;
                         }
-                    }
-                });
+
+                        var lstErrores = Object.getOwnPropertyNames(AcUtilsGlobals.errores[parent]);
+
+
+                        lstErrores.forEach(function (e, index, array) {
+                            (function () {
+                                var elem = angular.element(document.querySelector('#' + e));
+                                elem.addClass('error-input');
+                                elem[0].addEventListener('focus', function () {
+                                    elem.removeClass('error-input');
+                                    elem[0].removeEventListener('focus');
+                                    removeError(getMainContainer(elem));
+                                });
+                            })();
+                            addMessages(angular.element(document.querySelector('#' + e)));
+
+                        });
+
+                        e.stopImmediatePropagation();
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                    });
+
+                }
 
                 /**
                  * Cuando el usuario abandona el control, se ejecuta la validación
                  */
                 $element.bind('blur', onChange);
+                $element.bind('keyup', onChange);
                 $scope.$watch('ngModel', function (newVal, oldVal) {
 
                     onChange(newVal, oldVal, 'ngModel');
@@ -302,8 +284,8 @@
 
 
                     var elem = $element;
-                    var texto = addError(getMainContainer($element));
-                    addMessages(elem, texto);
+                    addError(getMainContainer(elem));
+                    addMessages(elem);
 
                 }
 
@@ -313,15 +295,18 @@
                  * @param elem
                  * @param texto
                  */
-                function addMessages(elem, texto) {
+                function addMessages(elem) {
 
+                    var parent = getMainContainer(elem);
 
                     //Agrego la visualización del error
                     elem.addClass('error-input');
 
 
-                    if (angular.element(document.querySelector('#error-' + elem[0].id)).length == 0) {
-                        elem.after('<div class="error-message" id="error-' + elem[0].id + '">' + texto + '</div>');
+                    if (angular.element(document.querySelector('#error-' + elem[0].id)).length == 0 &&
+                        AcUtilsGlobals.errores.hasOwnProperty(parent) &&
+                        AcUtilsGlobals.errores[parent].hasOwnProperty(elem[0].id)) {
+                        elem.after('<div class="error-message" id="error-' + elem[0].id + '">' + AcUtilsGlobals.errores[parent][elem[0].id]["texto"] + '</div>');
                     }
                     var mensaje = angular.element(document.querySelector('#error-' + elem[0].id));
 
