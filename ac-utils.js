@@ -15,6 +15,7 @@
         .service('AcUtilsGlobals', AcUtilsGlobals)
         .directive('acSearchPanel', AcSearchPanel)
         .directive('acValidator', AcValidator)
+        .factory('errorHandler', ErrorHander)
     ;
 
 
@@ -539,11 +540,9 @@
         };
     }
 
-
     AcUtilsController.$inject = [];
     function AcUtilsController() {
     }
-
 
     /**
      * Expone variables de control de la clase
@@ -735,6 +734,19 @@
                 var el = angular.element(document.querySelector('#ac-mensaje-custom'));
                 el.remove();
             }, timeout);
+        }
+    }
+
+    ErrorHandler.$inject = ['AcUtils'];
+    function ErrorHandler(AcUtils) {
+        return function (response) {
+            if (response.status == 401) {
+                AcUtils.showMessage('error', 'No se encuentra autorizado para llevar a cabo esta acción.');
+            } else if (response.status == 400) {
+                AcUtils.showMessage('error', response.data);
+            } else {
+                AcUtils.showMessage('error', 'Error: ' + response.status + '. Por favor contacte al administrador.');
+            }
         }
     }
 
