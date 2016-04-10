@@ -15,7 +15,7 @@
         .service('AcUtilsGlobals', AcUtilsGlobals)
         .directive('acSearchPanel', AcSearchPanel)
         .directive('acValidator', AcValidator)
-        .factory('errorHandler', ErrorHandler)
+        .factory('ErrorHandler', ErrorHandler)
     ;
 
 
@@ -742,9 +742,9 @@
         return function (response) {
             if (response.status == 401) {
                 AcUtils.showMessage('error', 'No se encuentra autorizado para llevar a cabo esta acción.');
-            } else if (response.status == 400) {
-                AcUtils.showMessage('error', response.data);
-            } else {
+            } else if (response.status == 400 || response.status == 500) {
+                AcUtils.showMessage('error', 'Error: ' + response.status + '. Por favor contacte al administrador.');
+            }else{
                 AcUtils.showMessage('error', 'Error: ' + response.status + '. Por favor contacte al administrador.');
             }
         }
