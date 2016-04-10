@@ -15,7 +15,7 @@
         .service('AcUtilsGlobals', AcUtilsGlobals)
         .directive('acSearchPanel', AcSearchPanel)
         .directive('acValidator', AcValidator)
-        .factory('errorHandler', ErrorHander)
+        .factory('errorHandler', ErrorHandler)
     ;
 
 
