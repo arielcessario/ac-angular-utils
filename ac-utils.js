@@ -16,8 +16,39 @@
         .directive('acSearchPanel', AcSearchPanel)
         .directive('acValidator', AcValidator)
         .factory('ErrorHandler', ErrorHandler)
-    ;
+        .factory('xlatService', xlatService)
+        .filter('xlat', xlat);
 
+
+    xlatService.$inject = ['initialXlatTables'];
+    function xlatService(initialXlatTables) {
+        var currentLanguage = 'es';
+        var tables = angular.copy(initialXlatTables);
+        return {
+            setCurrentLanguage: function (newCurrentLanguage) {
+                currentLanguage = newCurrentLanguage;
+            },
+            getCurrentLanguage: function () {
+                return currentLanguage;
+            },
+            xlat: function (label, parameters) {
+                if (parameters == null || parameters == undefined) {
+                    return tables[currentLanguage][label];
+                } else {
+                    return $interpolate(
+                        tables[currentLanguage][label])(
+                        parameters);
+                }
+            }
+        };
+    }
+
+    xlat.$inject = ['xlatService'];
+    function xlat(xlatService) {
+        return function (label, parameters) {
+            return xlatService.xlat(label, parameters);
+        };
+    }
 
     AcValidator.$inject = ["AcUtils", 'AcUtilsGlobals', '$timeout'];
     function AcValidator(AcUtils, AcUtilsGlobals, $timeout) {
@@ -232,7 +263,7 @@
                                 elem.addClass('error-input');
                                 elem[0].addEventListener('focus', function () {
                                     elem.removeClass('error-input');
-                                    elem[0].removeEventListener('focus');
+                                    elem[0].removeEventListener('focus', removeFocus);
                                     removeError(getMainContainer(elem));
                                 });
                             })();
@@ -320,11 +351,19 @@
                     function clear() {
                         elem[0].addEventListener('focus', function () {
                             elem.removeClass('error-input');
-                            elem[0].removeEventListener('focus');
+                            elem[0].removeEventListener('focus', removeFocus);
                             mensaje.remove();
                             removeError(getMainContainer(elem));
                         });
                     }
+                }
+
+                /**
+                 * Función que se ejecuta al remover el evento focus
+                 * @param elem
+                 * @param mensaje
+                 */
+                function removeFocus(){
                 }
 
 
@@ -744,7 +783,7 @@
                 AcUtils.showMessage('error', 'No se encuentra autorizado para llevar a cabo esta acción.');
             } else if (response.status == 400 || response.status == 500) {
                 AcUtils.showMessage('error', 'Error: ' + response.status + '. Por favor contacte al administrador.');
-            }else{
+            } else {
                 AcUtils.showMessage('error', 'Error: ' + response.status + '. Por favor contacte al administrador.');
             }
         }
