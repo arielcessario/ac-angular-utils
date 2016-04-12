@@ -20,8 +20,8 @@
         .filter('xlat', xlat);
 
 
-    xlatService.$inject = ['initialXlatTables'];
-    function xlatService(initialXlatTables) {
+    xlatService.$inject = ['initialXlatTables', '$interpolate'];
+    function xlatService(initialXlatTables, $interpolate) {
         var currentLanguage = 'es';
         var tables = angular.copy(initialXlatTables);
         return {
