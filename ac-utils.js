@@ -17,8 +17,40 @@
         .directive('acValidator', AcValidator)
         .factory('ErrorHandler', ErrorHandler)
         .factory('xlatService', xlatService)
-        .filter('xlat', xlat);
+        .filter('xlat', xlat)
+        .component('acWaiting', AcWaiting());
 
+
+    function AcWaiting() {
+        return {
+            bindings: {
+                texto: '=',
+                imagen: '='
+            },
+            template: '' +
+            '<div ' +
+            'id="ac-waiting" ' +
+            'ng-if="$ctrl.isWaiting">' +
+            '<span>{{$ctrl.texto}}</span>' +
+            '<div ng-class="$ctrl.imagen"></div>' +
+            '</div>',
+            controller: AcWaitingController
+        }
+    }
+
+    AcWaitingController.$inject = ['$rootScope'];
+    function AcWaitingController($rootScope) {
+        var vm = this;
+        vm.isWaiting = false;
+
+        $rootScope.$on("startWaiting", function () {
+            vm.isWaiting = true;
+        });
+
+        $rootScope.$on("stopWaiting", function () {
+            vm.isWaiting = false;
+        });
+    }
 
     xlatService.$inject = ['initialXlatTables', '$interpolate'];
     function xlatService(initialXlatTables, $interpolate) {
@@ -363,7 +395,7 @@
                  * @param elem
                  * @param mensaje
                  */
-                function removeFocus(){
+                function removeFocus() {
                 }
 
 
@@ -594,6 +626,17 @@
         // Cantidad mínima de caracteres para que se ejecute getByParams
         this.getByParamsLenght = 2;
         this.errores = [];
+
+        // Inicia la pantalla de espera
+        this.startWaiting = function () {
+            $rootScope.$broadcast("startWaiting");
+        };
+
+        // Finaliza la pantalla de espera
+        this.stopWaiting = function () {
+            $rootScope.$broadcast("stopWaiting")
+        };
+
 
         this.broadcast = function () {
             $rootScope.$broadcast("AcUtilsGlobalsValidations")
