@@ -21,6 +21,8 @@
         .component('acWaiting', AcWaiting());
 
 
+
+
     function AcWaiting() {
         return {
             bindings: {
@@ -667,6 +669,12 @@
         service.verifyBrowser = verifyBrowser;
         service.getByParams = getByParams;
         service.showMessage = showMessage;
+        // Servicios de paginación
+        service.goToPagina = goToPagina;
+        service.first = first;
+        service.last = last;
+        service.prev = prev;
+        service.next = next;
 
         return service;
 
@@ -816,6 +824,106 @@
                 var el = angular.element(document.querySelector('#ac-mensaje-custom'));
                 el.remove();
             }, timeout);
+        }
+
+
+        /**
+         * Para el uso de la p�ginaci�n, definir en el controlador las siguientes variables:
+         *
+         vm.start = 0;
+         vm.pagina = UserVars.pagina;
+         UserVars.paginacion = 5; Cantidad de registros por p�gina
+         vm.end = UserVars.paginacion;
+
+
+         En el HTML, en el ng-repeat agregar el siguiente filtro: limitTo:appCtrl.end:appCtrl.start;
+
+         Agregar un bot�n de next:
+         <button ng-click="appCtrl.next()">next</button>
+
+         Agregar un bot�n de prev:
+         <button ng-click="appCtrl.prev()">prev</button>
+
+         Agregar un input para la p�gina:
+         <input type="text" ng-keyup="appCtrl.goToPagina()" ng-model="appCtrl.pagina">
+
+         */
+
+
+
+        function first (_vars) {
+            _vars.pagina = 1;
+            return goToPagina(_vars.pagina, _vars);
+        }
+
+        function last (_vars) {
+            _vars.pagina = _vars.paginas;
+            return goToPagina(_vars.pagina, _vars);
+        }
+
+
+        /**
+         * @description: Ir a p�gina
+         * @param pagina
+         * @returns {*}
+         * uso: agregar un m�todo
+         vm.goToPagina = function () {
+                vm.start= UserService.goToPagina(vm.pagina).start;
+            };
+         */
+        function goToPagina(pagina, _vars) {
+
+            if(pagina == null || pagina == undefined){
+                return {};
+            }
+
+            if (isNaN(pagina) || pagina < 1) {
+                _vars.pagina = 1;
+                pagina = 1;
+            }
+
+            if (pagina > _vars.paginas) {
+                pagina = _vars.paginas;
+            }
+
+            _vars.pagina = pagina;
+            _vars.start = (_vars.pagina - 1) * _vars.paginacion;
+            return _vars;
+        }
+
+        /**
+         * @name next
+         * @description Ir a pr�xima p�gina
+         * @returns {*}
+         * uso agregar un metodo
+         vm.next = function () {
+                vm.start = UserService.next().start;
+                vm.pagina = UserVars.pagina;
+            };
+         */
+        function next(_vars) {
+            if (_vars.pagina + 1 > _vars.paginas) {
+                return goToPagina(_vars.pagina, _vars);
+            }
+            return goToPagina(_vars.pagina + 1, _vars);
+        }
+
+        /**
+         * @name previous
+         * @description Ir a p�gina anterior
+         * @returns {*}
+         * uso, agregar un m�todo
+         vm.prev = function () {
+                vm.start= UserService.prev().start;
+                vm.pagina = UserVars.pagina;
+            };
+         */
+        function prev(_vars) {
+            if (_vars.pagina - 1 == 0) {
+                return goToPagina(1, _vars);
+            }
+
+            return goToPagina(_vars.pagina - 1, _vars);
         }
     }
 
