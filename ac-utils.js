@@ -21,8 +21,6 @@
         .component('acWaiting', AcWaiting());
 
 
-
-
     function AcWaiting() {
         return {
             bindings: {
@@ -851,12 +849,12 @@
 
 
 
-        function first (_vars) {
+        function first(_vars) {
             _vars.pagina = 1;
             return goToPagina(_vars.pagina, _vars);
         }
 
-        function last (_vars) {
+        function last(_vars) {
             _vars.pagina = _vars.paginas;
             return goToPagina(_vars.pagina, _vars);
         }
@@ -873,7 +871,7 @@
          */
         function goToPagina(pagina, _vars) {
 
-            if(pagina == null || pagina == undefined){
+            if (pagina == null || pagina == undefined) {
                 return {};
             }
 
@@ -933,7 +931,7 @@
             if (response.status == 401) {
                 AcUtils.showMessage('error', 'No se encuentra autorizado para llevar a cabo esta acción.');
             } else if (response.status == 400 || response.status == 500) {
-                AcUtils.showMessage('error', 'Error: ' + response.status + '. Por favor contacte al administrador.');
+                AcUtils.showMessage('error', 'Error: ' + response.status + '. ' + response.data);
             } else {
                 AcUtils.showMessage('error', 'Error: ' + response.status + '. Por favor contacte al administrador.');
             }
